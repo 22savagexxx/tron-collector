@@ -1,0 +1,12 @@
+version: "3.9"
+
+services:
+  tron-collector:
+    build: .
+    container_name: tron-collector
+    restart: unless-stopped
+    volumes:
+      - ./app/config.json:/app/config.json:ro
+      - ./data:/data
+    environment:
+      TZ: Europe/Moscow
