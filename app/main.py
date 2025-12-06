@@ -22,11 +22,41 @@ async def tg_log(session, text, token, chat_id):
         pass
 
 
+DEFAULT_PROGRESS = {
+    "last_offset": 0,
+    "total_saved": 0,
+    "file_index": 0,
+    "done": False
+}
+
+
 def load_progress():
-    if os.path.exists(PROGRESS_FILE):
+    if not os.path.exists(PROGRESS_FILE):
+        return DEFAULT_PROGRESS.copy()
+
+    try:
         with open(PROGRESS_FILE, "r") as f:
-            return json.load(f)
-    return {"last_offset": 0, "total_saved": 0, "file_index": 0}
+            raw = f.read().strip()
+
+            # пустой файл → дефолт
+            if not raw:
+                return DEFAULT_PROGRESS.copy()
+
+            data = json.loads(raw)
+
+            # добиваем все недостающие ключи
+            for key, default_value in DEFAULT_PROGRESS.items():
+                if key not in data:
+                    data[key] = default_value
+
+            return data
+
+    except Exception:
+        # если json битый — восстанавливаем дефолты
+        return DEFAULT_PROGRESS.copy()
+
+
+
 
 
 def save_progress(offset, total_saved, file_index):
