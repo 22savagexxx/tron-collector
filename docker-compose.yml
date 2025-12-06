@@ -8,5 +8,6 @@ services:
     volumes:
       - ./app/config.json:/app/config.json:ro
       - ./data:/data
+      - ./app:/app
     environment:
       TZ: Europe/Moscow

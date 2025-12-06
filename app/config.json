@@ -1,7 +1,10 @@
 {
-  "API_KEY": "682d42ec-73f8-4574-81b4-66e293fbcab7",
+    "API_KEY": "268513cb-8366-4e15-8dbb-072be5cd6c61",
+    "RPC_URL": "https://trx.nownodes.io/wallet/",
+    "START_BLOCK": 1000000,
+    "PROGRESS_FILE": "index_progress.json",
+    "ADDRESSES_FILE": "unique_addresses.txt",
+    "BATCH_SIZE": 10,
   "TG_TOKEN": "8275156524:AAFWlDsud0qdJn7oKY-xCO1-y_LWIylOF_8",
-  "TG_CHAT_ID": "700416664",
-  "BATCH_SIZE": 50,
-  "DELAY": 0.05
+  "TG_CHAT_ID": "700416664"
 }
