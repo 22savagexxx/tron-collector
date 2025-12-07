@@ -1,5 +1,5 @@
 {
-    "API_KEY": "268513cb-8366-4e15-8dbb-072be5cd6c61",
+    "API_KEY": "a74b17cd-4450-416b-9333-0ce90c34dd05",
     "RPC_URL": "https://trx.nownodes.io/wallet/",
     "START_BLOCK": 1000000,
     "PROGRESS_FILE": "index_progress.json",
