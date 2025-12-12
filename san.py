@@ -24,7 +24,7 @@ MAX_CONCURRENT = 5  # Максимум одновременных запросо
 
 # ВАЖНО: Период ВНУТРИ которого ищем трансферы (включая активность)
 TRANSFER_PERIOD_START = datetime(2020, 9, 1, tzinfo=timezone.utc)
-TRANSFER_PERIOD_END = datetime(2020, 12, 29, tzinfo=timezone.utc)
+TRANSFER_PERIOD_END = datetime(2020, 9, 29, tzinfo=timezone.utc)
 
 # Граница последней активности (последняя активность должна быть ДО этой даты)
 ACTIVITY_CUTOFF = datetime(2021, 1, 1, tzinfo=timezone.utc)
