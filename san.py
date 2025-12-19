@@ -25,8 +25,8 @@ REQUESTS_PER_SECOND = 10  # Для платного тарифа
 MAX_CONCURRENT = 10  # Для платного тарифа
 
 # Период (Эфир существует давно, можно брать 2020 год)
-TRANSFER_PERIOD_START = datetime(2020, 5, 1, tzinfo=timezone.utc)
-TRANSFER_PERIOD_END = datetime(2020, 5, 2, tzinfo=timezone.utc)
+TRANSFER_PERIOD_START = datetime(2020, 1, 1, tzinfo=timezone.utc)
+TRANSFER_PERIOD_END = datetime(2020, 10, 2, tzinfo=timezone.utc)
 ACTIVITY_CUTOFF = datetime(2021, 10, 1, tzinfo=timezone.utc)
 
 MIN_BALANCE = 1000
