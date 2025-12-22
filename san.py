@@ -9,25 +9,25 @@ from datetime import datetime, timezone, timedelta
 from concurrent.futures import ThreadPoolExecutor
 
 # === НАСТРОЙКИ ===
-ACCESS_TOKEN = "ory_at_t4axr0lstK769pREYxgt3JapM-UrrdA-GKp2umCPxmc.8k7wYUkAs4ient9Wr64CHHB9d8qy3uPbGTbZT_RpjTs"
+ACCESS_TOKEN = "ory_at_n2Bt-9M9HNWphG8OAXYW2JAbMtCEgpEv6tl_xmqZz1M.OAzuu6d5wqRX0lwhubosG-yXgw5D7VxbnZBuhLLfpOk"
 ENDPOINT = "https://graphql.bitquery.io"
 
-# Ethereum USDT Contract
-USDT_CONTRACT = "0xdac17f958d2ee523a2206206994597c13d831ec7"
+# BSC USDT Contract (BSC-USD / BEP20)
+USDT_CONTRACT = "0x55d398326f99059ff775485246999027b3197955"
 
-DB_FILE = "eth_data.db"
-RESULTS_FILE = "eth_results.json"
-CHECKED_ADDRESSES_FILE = "eth_checked_cache.json"
+DB_FILE = "bsc_data.db"
+RESULTS_FILE = "bsc_results.json"
+CHECKED_ADDRESSES_FILE = "bsc_checked_cache.json"
 
 PAGE_SIZE = 5000
 MAX_RETRIES = 3
 REQUESTS_PER_SECOND = 10  # Для платного тарифа
 MAX_CONCURRENT = 10  # Для платного тарифа
 
-# Период (Эфир существует давно, можно брать 2020 год)
-TRANSFER_PERIOD_START = datetime(2020, 1, 1, tzinfo=timezone.utc)
-TRANSFER_PERIOD_END = datetime(2020, 3, 2, tzinfo=timezone.utc)
-ACTIVITY_CUTOFF = datetime(2021, 10, 1, tzinfo=timezone.utc)
+# Период (BSC запустился в сентябре 2020)
+TRANSFER_PERIOD_START = datetime(2020, 9, 1, tzinfo=timezone.utc)
+TRANSFER_PERIOD_END = datetime(2021, 3, 1, tzinfo=timezone.utc)
+ACTIVITY_CUTOFF = datetime(2021, 7, 1, tzinfo=timezone.utc)
 
 MIN_BALANCE = 1000
 MAX_BALANCE = 100000
@@ -36,7 +36,7 @@ MAX_BALANCE = 100000
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s] %(message)s',
-    handlers=[logging.FileHandler("eth_debug.log"), logging.StreamHandler()]
+    handlers=[logging.FileHandler("bsc_debug.log"), logging.StreamHandler()]
 )
 
 
@@ -94,10 +94,10 @@ def graphql_query(query, variables=None, retry=0):
 
 
 def fetch_and_process(conn, since, till):
-    # В Ethereum v1 используется smartContractAddress и date
+    # BSC использует ту же структуру что и Ethereum в v1 API
     query = """
-    query GetEthereum($offset: Int!, $limit: Int!, $currency: String!, $since: ISO8601DateTime!, $till: ISO8601DateTime!) {
-      ethereum(network: ethereum) {
+    query GetBSC($offset: Int!, $limit: Int!, $currency: String!, $since: ISO8601DateTime!, $till: ISO8601DateTime!) {
+      ethereum(network: bsc) {
         transfers(
           options: {limit: $limit, offset: $offset, asc: "block.timestamp.time"}
           time: {since: $since, till: $till}
@@ -138,18 +138,18 @@ def fetch_and_process(conn, since, till):
         conn.commit()
         
         total += len(transfers)
-        logging.info(f"   Ethereum Загружено: {offset + len(transfers)}")
+        logging.info(f"   BSC Загружено: {offset + len(transfers)}")
         if len(transfers) < PAGE_SIZE: break
         offset += PAGE_SIZE
         time.sleep(0.05)
     return total
 
 
-def get_current_info_eth(address):
+def get_current_info_bsc(address):
     rate_limiter.wait()
     query = """
-    query GetEthInfo($address: String!, $currency: String!) {
-      ethereum(network: ethereum) {
+    query GetBSCInfo($address: String!, $currency: String!) {
+      ethereum(network: bsc) {
         address(address: {is: $address}) {
           balances(currency: {is: $currency}) { value }
         }
@@ -157,6 +157,7 @@ def get_current_info_eth(address):
         lastTransfer: transfers(
           options: {desc: "block.timestamp.time", limit: 1}
           sender: {is: $address}
+          currency: {is: $currency}
         ) {
           block { timestamp { time(format: "%Y-%m-%d %H:%M:%S") } }
         }
@@ -178,12 +179,12 @@ def get_current_info_eth(address):
 
 def main():
     db_conn = init_db()
-    logging.info("🚀 Ethereum USDT Script Started")
+    logging.info("🚀 BSC USDT Script Started")
     
     curr = TRANSFER_PERIOD_START
     while curr < TRANSFER_PERIOD_END:
-        # Для Эфира можно брать шаг в 1-2 дня, так как транзакций USDT много
-        nxt = min(curr + timedelta(days=1), TRANSFER_PERIOD_END)
+        # Для BSC можно брать шаг в 2-3 дня
+        nxt = min(curr + timedelta(days=2), TRANSFER_PERIOD_END)
         s_str, t_str = curr.strftime("%Y-%m-%dT%H:%M:%SZ"), nxt.strftime("%Y-%m-%dT%H:%M:%SZ")
         logging.info(f"📅 Period: {s_str} - {t_str}")
         fetch_and_process(db_conn, s_str, t_str)
@@ -208,7 +209,7 @@ def main():
         checked_cache = {}
     
     with ThreadPoolExecutor(max_workers=MAX_CONCURRENT) as executor:
-        future_to_addr = {executor.submit(get_current_info_eth, c[0]): c[0] for c in candidates if
+        future_to_addr = {executor.submit(get_current_info_bsc, c[0]): c[0] for c in candidates if
                           c[0] not in checked_cache}
         for i, future in enumerate(future_to_addr):
             addr, info = future_to_addr[future], future.result()
@@ -217,7 +218,7 @@ def main():
                 last_dt = datetime.strptime(info["last_activity"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
                 if MIN_BALANCE <= info["balance"] <= MAX_BALANCE and last_dt < ACTIVITY_CUTOFF:
                     final_results[addr] = info
-                    logging.info(f" ✨ FOUND ETH WALLET: {addr} | Balance: {info['balance']}")
+                    logging.info(f" ✨ FOUND BSC WALLET: {addr} | Balance: {info['balance']}")
             if i % 50 == 0:
                 with open(CHECKED_ADDRESSES_FILE, "w") as f: json.dump(checked_cache, f)
     
