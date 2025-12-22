@@ -25,8 +25,8 @@ REQUESTS_PER_SECOND = 10  # Для платного тарифа
 MAX_CONCURRENT = 10  # Для платного тарифа
 
 # Период (BSC запустился в сентябре 2020)
-TRANSFER_PERIOD_START = datetime(2020, 9, 1, tzinfo=timezone.utc)
-TRANSFER_PERIOD_END = datetime(2021, 3, 1, tzinfo=timezone.utc)
+TRANSFER_PERIOD_START = datetime(2021, 3, 1, tzinfo=timezone.utc)
+TRANSFER_PERIOD_END = datetime(2021, 7, 1, tzinfo=timezone.utc)
 ACTIVITY_CUTOFF = datetime(2021, 7, 1, tzinfo=timezone.utc)
 
 MIN_BALANCE = 1000
